@@ -1,38 +1,85 @@
 from dataclasses import dataclass
-from typing import *
 from lib.basic import *
 from lib.physics import *
 
 
 @dataclass
-class Physics(Resource):
+class RoleVariant(Serializer):
+    name: str
+
+    # physics
     shape: Shape
-    position: Optional[Transform]
+    position: Transform | None
 
+    # value
+    attributes: Attributes
+    weapons: tuple[str]
+    souls: tuple[str]
 
-# @dataclass
-# class Properties(Resource):
-#     max_health: tuple[float, ...]
-#     max_shield: tuple[float, ...]
-#     shield_speed: tuple[float, ...]
-
-#     phy_attack: tuple[float, ...]
-#     elm_attack: tuple[float, ...]
-#     spe_attack: tuple[float, ...]
-
-#     phy_defense: tuple[float, ...]
-#     elm_defense: tuple[float, ...]
-#     spe_defense: tuple[float, ...]
-
-#     crit_chance_ratio: tuple[float, ...]
-#     crit_damage_ratio: tuple[float, ...]
+    def __init__(
+        self,
+        *,
+        name: str,
+        shape: Shape,
+        position: Transform | None = None,
+        attributes: Attributes,
+        weapons: tuple[str],
+        souls: tuple[str],
+    ) -> None:
+        super().__init__()
+        self.name = name
+        self.shape = shape
+        self.position = position
+        self.attributes = attributes
+        self.weapons = weapons
+        self.souls = souls
 
 
 @dataclass
-class Character(Resource):
-    res_id: str
-    min_level: int
-    max_level: int
-    physics: Physics
-    properties: Properties
-    type: Literal["Character"] = "Character"
+class Role(Resource):
+    type: ClassVar[str] = "Role"
+
+    name: str
+    level: tuple[int, int]
+    variants: tuple[RoleVariant, ...]
+
+    def __init__(
+        self,
+        res_id: str,
+        *,
+        name: str,
+        level: tuple[int, int],
+        variants: tuple[RoleVariant, ...],
+    ) -> None:
+        super().__init__(res_id)
+        self.name = name
+        self.level = level
+        self.variants = variants
+
+
+@dataclass
+class Enemy(Resource):
+    type: ClassVar[str] = "Enemy"
+
+    name: str
+    level: int
+    shape: Shape
+    position: Transform | None
+    attributes: Attributes
+
+    def __init__(
+        self,
+        res_id: str,
+        *,
+        name: str,
+        level: int,
+        shape: Shape,
+        position: Transform | None,
+        attributes: Attributes,
+    ) -> None:
+        super().__init__(res_id)
+        self.name = name
+        self.level = level
+        self.shape = shape
+        self.position = position
+        self.attributes = attributes
