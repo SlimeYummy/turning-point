@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import ClassVar
-from lib.basic import Resource
+from lib.basic import Resource, Serializer
 
 
 @dataclass
@@ -10,7 +10,7 @@ class Transform(Resource):
 
 
 @dataclass
-class Shape(Resource):
+class Shape(Serializer):
     def __init__(self) -> None:
         raise Exception("Shape is an abstract class")
 
