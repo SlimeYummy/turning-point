@@ -1,35 +1,69 @@
 from dataclasses import dataclass, is_dataclass
 from typing import *
-import json
 
 
+@dataclass
 class Serializer:
     def serialize(self: Any) -> Any:
-        dict = {}
+        return Serializer.serialize_any(self)
 
-        typ = getattr(type(self), "type", "")
-        if typ != "":
-            dict["type"] = typ
+    @staticmethod
+    def serialize_any(obj: Any) -> Any:
+        if isinstance(obj, Serializer):
+            json = {}
 
-        if is_dataclass(self):
-            for key in self.__dataclass_fields__:
-                value = getattr(self, key)
-                if value != None and value != "":
-                    if isinstance(value, Resource):
-                        dict[key] = value.serialize()
-                    else:
-                        dict[key] = value
+            typ = getattr(type(obj), "type", "")
+            if typ != "":
+                json["type"] = typ
+
+            if is_dataclass(obj):
+                for key in obj.__dataclass_fields__:
+                    value = getattr(obj, key)
+                    if value != None and value != "":
+                        json[key] = Serializer.serialize_any(value)
+            else:
+                for key, value in obj.__dict__.items():
+                    if value != None and value != "":
+                        json[key] = Serializer.serialize_any(value)
+            return json
+
+        elif isinstance(obj, tuple) or isinstance(obj, list):
+            return [Serializer.serialize_any(value) for value in obj]
+
+        elif isinstance(obj, dict):
+            return {
+                key: Serializer.serialize_any(value)
+                for key, value in obj.items()
+            }
+
         else:
-            for key, value in self.__dict__.items():
-                if value != None and value != "":
-                    if isinstance(value, Resource):
-                        dict[key] = value.serialize()
-                    else:
-                        dict[key] = value
-        return dict
+            return obj
 
-    def toJSON(self) -> str:
-        return json.dumps(self.serialize())
+    @staticmethod
+    def serialize_dict_table(obj: Any) -> Any:
+        table = Serializer.serialize_any(obj)
+        row = 0
+        for val in table.values():
+            row = max(row, len(val))
+        return {
+            "type": "DictTable",
+            "row": row,
+            "column": len(table),
+            "table": table,
+        }
+
+    @staticmethod
+    def serialize_list_table(obj: Any) -> Any:
+        table = Serializer.serialize_any(obj)
+        row = 0
+        for val in table:
+            row = max(row, len(val))
+        return {
+            "type": "ListTable",
+            "row": row,
+            "column": len(table),
+            "table": table,
+        }
 
 
 @dataclass
@@ -120,3 +154,6 @@ class Attributes(Serializer):
     phy_break_up: tuple[float, ...] | None = None
     elm_break_up: tuple[float, ...] | None = None
     spe_break_up: tuple[float, ...] | None = None
+
+    def serialize(self: Any) -> Any:
+        return Serializer.serialize_dict_table(self)
