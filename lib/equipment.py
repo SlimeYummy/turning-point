@@ -10,6 +10,19 @@ class WeaponVariant(Serializer):
     slots: tuple[str, ...] | None = None
     attributes: Attributes | None = None
 
+    def serialize(self: Any) -> Any:
+        json = {}
+        for key in self.__dataclass_fields__:
+            value = getattr(self, key)
+            if value != None and value != "":
+                if key == "materials":
+                    json[key] = Serializer.serialize_list_table(value)
+                elif key == "slots":
+                    json[key] = Serializer.serialize_list_table(value)
+                else:
+                    json[key] = Serializer.serialize_any(value)
+        return json
+
 
 @dataclass
 class Weapon(Resource):
