@@ -9,7 +9,8 @@ class Serializer:
 
     @staticmethod
     def serialize_any(obj: Any) -> Any:
-        if isinstance(obj, Serializer):
+        typed_obj = obj
+        if isinstance(typed_obj, Serializer):
             json = {}
 
             typ = getattr(type(obj), "type", "")
